@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  leetcode      String?
+  codechef      String?
+  hackerrank    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  submissions   Submission[]
+  problemStats  ProblemStats[]
+  studyPlan     StudyPlan[]
+  dailyProgress DailyProgress[]
+  streak        Int       @default(0)
+}
+
+model Submission {
+  id          String    @id @default(cuid())
+  userId      String
+  platform    String
+  problemId   String
+  problemName String
+  difficulty  String
+  status      String
+  category    String
+  timestamp   DateTime  @default(now())
+  timeTaken   Int?      // Time taken in minutes
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model ProblemStats {
+  id          String    @id @default(cuid())
+  userId      String
+  platform    String
+  category    String
+  solved      Int       @default(0)
+  attempted   Int       @default(0)
+  timestamp   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model StudyPlan {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  categories  String[]  // Array of DSA categories
+  difficulty  String
+  problems    Problem[]
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Problem {
+  id          String    @id @default(cuid())
+  studyPlanId String
+  platform    String
+  problemId   String
+  name        String
+  difficulty  String
+  category    String
+  url         String
+  completed   Boolean   @default(false)
+  studyPlan   StudyPlan @relation(fields: [studyPlanId], references: [id])
+}
+
+model DailyProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  date        DateTime
+  problemsSolved Int    @default(0)
+  timeSpent   Int       @default(0) // Time in minutes
+  categories  String[]
+  user        User      @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, date])
+} 
